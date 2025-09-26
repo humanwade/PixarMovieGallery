@@ -1,8 +1,3 @@
-// ChatGPT Conversation Links:
-// 1.https://chatgpt.com/share/67e23c93-a6e4-8002-8e3d-592c12d9068a
-// 2.
-// Add as many links as needed
-
 const fileInput = document.getElementById("moviefile");
 const yearFilter = document.getElementById("movie-year");
 const directorFilter = document.getElementById("movie-director");
@@ -10,11 +5,10 @@ const orderFilter = document.getElementById("movie-order");
 const searchInput = document.getElementById("movie-search");
 const movieContainer = document.getElementById("movie-posters");
 
-
 let allMovies = [];
 
-class Pixar{
-    constructor(title, director, releaseDate, imdbRating, posterUrl){
+class Pixar {
+    constructor(title, director, releaseDate, imdbRating, posterUrl) {
         this.title = title;
         this.director = director;
         this.releaseDate = releaseDate;
@@ -23,16 +17,16 @@ class Pixar{
     }
 }
 
-// File Change
+/* 
 fileInput.addEventListener("change", function (e) {
     const fileReader = new FileReader();
-    fileReader.onload = function(){
+    fileReader.onload = function () {
         const jsonData = JSON.parse(fileReader.result);
         const movies = [];
         const yearSet = new Set();
         const directorSet = new Set();
 
-        for(let i = 0 ; i < jsonData.movies.length ; i ++){
+        for (let i = 0; i < jsonData.movies.length; i++) {
             const movie = jsonData.movies[i];
             movies.push(new Pixar(movie.title, movie.director, movie.releaseDate, movie.imdbRating, movie.posterUrl));
             const year = new Date(movie.releaseDate).getFullYear();
@@ -40,18 +34,48 @@ fileInput.addEventListener("change", function (e) {
             directorSet.add(movie.director);
         }
 
-        //console.log(movies);
         allMovies = movies;
         displayMovies(movies);
-        yearSelectBox(Array.from(yearSet).sort((a,b) => a - b));
+        yearSelectBox(Array.from(yearSet).sort((a, b) => a - b));
         directorSelectBox(Array.from(directorSet).sort());
-    }
+    };
 
     fileReader.readAsText(e.target.files[0]);
 });
+*/
+
+document.addEventListener("DOMContentLoaded", () => {
+    fetch("pixar.json")
+        .then(response => {
+            if (!response.ok) throw new Error("Failed to load JSON file");
+            return response.json();
+        })
+        .then(jsonData => {
+            const movies = [];
+            const yearSet = new Set();
+            const directorSet = new Set();
+
+            for (let i = 0; i < jsonData.movies.length; i++) {
+                const movie = jsonData.movies[i];
+                movies.push(new Pixar(movie.title, movie.director, movie.releaseDate, movie.imdbRating, movie.posterUrl));
+                const year = new Date(movie.releaseDate).getFullYear();
+                yearSet.add(year);
+                directorSet.add(movie.director);
+            }
+
+            allMovies = movies;
+            displayMovies(movies);
+            yearSelectBox(Array.from(yearSet).sort((a, b) => a - b));
+            directorSelectBox(Array.from(directorSet).sort());
+        })
+        .catch(error => {
+            console.error("Error loading JSON:", error);
+            movieContainer.innerHTML = `<p style="color:red;">❌ Failed to load pixar.json</p>`;
+        });
+});
 
 
-function displayMovies(movies){
+function displayMovies(movies) {
     movieContainer.innerHTML = "";
 
     if (movies.length === 0) {
@@ -68,13 +92,13 @@ function displayMovies(movies){
 
         const img = document.createElement("img");
         img.src = `images/${movie.posterUrl}`;
-        img.alt = movie.title;        
+        img.alt = movie.title;
 
         const year = new Date(movie.releaseDate).getFullYear();
 
         const info = document.createElement("div");
         info.className = "movie-info";
-        
+
         const title = document.createElement("h3");
         title.className = "movie-title";
         title.textContent = movie.title;
@@ -106,28 +130,27 @@ orderFilter.addEventListener("change", combinedFilter);
 searchInput.addEventListener("input", combinedFilter);
 
 //reset
-function resetSearch(){
+function resetSearch() {
     yearFilter.value = "All Years";
     directorFilter.value = "All Directors";
-    orderFilter.value ="Ascending";
+    orderFilter.value = "Ascending";
 
     combinedFilter();
 }
 
-function resetFilter(){
-    searchInput.value ="";
-
+function resetFilter() {
+    searchInput.value = "";
     combinedFilter();
 }
 
 
 //combined filter
-function combinedFilter(){
+function combinedFilter() {
     let copyMovies = [...allMovies];
 
     //year filter
     const selectedYear = yearFilter.value;
-    if(selectedYear != "All Years"){
+    if (selectedYear != "All Years") {
         copyMovies = copyMovies.filter(yearFilter => {
             const movieYear = new Date(yearFilter.releaseDate).getFullYear();
             return movieYear == selectedYear;
@@ -136,31 +159,30 @@ function combinedFilter(){
 
     //director filter
     const selectedDirector = directorFilter.value;
-    if (selectedDirector != "All Directors"){
+    if (selectedDirector != "All Directors") {
         copyMovies = copyMovies.filter(filterDirector => filterDirector.director == selectedDirector);
     }
 
     //order filter
     const orderMethod = orderFilter.value;
-    if(orderMethod != ""){
+    if (orderMethod != "") {
         copyMovies.sort((a, b) =>
-            orderMethod == "Ascending" 
-            ? new Date(a.releaseDate) - new Date(b.releaseDate) 
-            : new Date(b.releaseDate) - new Date(a.releaseDate)
-        ); 
+            orderMethod == "Ascending"
+                ? new Date(a.releaseDate) - new Date(b.releaseDate)
+                : new Date(b.releaseDate) - new Date(a.releaseDate)
+        );
     }
 
     //search filter
     const keyword = searchInput.value.toLowerCase();
-    if (keyword != ""){
+    if (keyword != "") {
         copyMovies = copyMovies.filter(filterSearch => filterSearch.title.toLowerCase().includes(keyword));
     }
 
     displayMovies(copyMovies);
 }
 
-
-function yearSelectBox(years){
+function yearSelectBox(years) {
     yearFilter.innerHTML = "<option>All Years</option>";
 
     years.forEach(year => {
@@ -168,10 +190,10 @@ function yearSelectBox(years){
         yearOption.value = year;
         yearOption.textContent = year;
         yearFilter.appendChild(yearOption);
-    })
+    });
 }
 
-function directorSelectBox(directors){
+function directorSelectBox(directors) {
     directorFilter.innerHTML = "<option>All Directors</option>";
 
     directors.forEach(director => {
@@ -179,9 +201,5 @@ function directorSelectBox(directors){
         directorOption.value = director;
         directorOption.textContent = director;
         directorFilter.appendChild(directorOption);
-    })
+    });
 }
-
-
-
-
